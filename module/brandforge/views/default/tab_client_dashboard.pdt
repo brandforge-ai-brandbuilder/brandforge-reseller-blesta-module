@@ -1,0 +1,70 @@
+<?php if (!$has_service): ?>
+    <div class="alert alert-info" role="alert">
+        <i class="fas fa-info-circle mr-1"></i>
+        <?php echo Language::_('Brandforge.dashboard.no_service', true); ?>
+    </div>
+<?php else: ?>
+
+    <?php if ($sso_url !== ''): ?>
+        <a href="<?php echo $this->Html->safe($sso_url); ?>" target="_blank" rel="noopener"
+           class="btn btn-block mb-2"
+           style="background-color: <?php echo $this->Html->safe($brand_color); ?>; color: #fff;">
+            <i class="fas fa-rocket mr-1"></i>
+            <?php echo Language::_('Brandforge.dashboard.launch', true, $brand_name); ?>
+        </a>
+    <?php endif; ?>
+    <?php if ($workspace_sso_url !== ''): ?>
+        <a href="<?php echo $this->Html->safe($workspace_sso_url); ?>" target="_blank" rel="noopener"
+           class="btn btn-outline-secondary btn-block mb-3">
+            <i class="fas fa-th-large mr-1"></i>
+            <?php echo Language::_('Brandforge.dashboard.view_workspace', true); ?>
+        </a>
+    <?php endif; ?>
+    <?php if ($sso_error !== ''): ?>
+        <div class="alert alert-warning" role="alert">
+            <i class="fas fa-exclamation-triangle mr-1"></i>
+            <?php echo Language::_('Brandforge.dashboard.sso_unavailable', true, $sso_error); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($has_usage_data): ?>
+        <div class="card mb-2">
+            <div class="card-body">
+                <h6 class="card-title"><?php echo Language::_('Brandforge.dashboard.credits', true); ?></h6>
+                <?php
+                $creditsPercent = $credits_allocated > 0
+                    ? min(100, (int) round(($credits_used / $credits_allocated) * 100))
+                    : 0;
+                ?>
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar<?php echo $credits_over_limit ? ' bg-danger' : ''; ?>"
+                         role="progressbar" style="width: <?php echo $creditsPercent; ?>%;"
+                         aria-valuenow="<?php echo $creditsPercent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <small class="text-muted">
+                    <?php echo Language::_('Brandforge.dashboard.credits_used_of', true, $credits_used, $credits_allocated); ?>
+                    <?php if ($credits_period_end !== ''): ?>
+                        &middot; <?php echo Language::_('Brandforge.dashboard.credits_resets', true, $credits_period_end); ?>
+                    <?php endif; ?>
+                </small>
+            </div>
+        </div>
+        <div class="card mb-2">
+            <div class="card-body">
+                <h6 class="card-title"><?php echo Language::_('Brandforge.dashboard.workspaces', true); ?></h6>
+                <small class="text-muted">
+                    <?php if ($workspaces_max > 0): ?>
+                        <?php echo Language::_('Brandforge.dashboard.workspaces_active_of_max', true, $workspaces_active, $workspaces_max); ?>
+                    <?php else: ?>
+                        <?php echo Language::_('Brandforge.dashboard.workspaces_active_count', true, $workspaces_active); ?>
+                    <?php endif; ?>
+                </small>
+            </div>
+        </div>
+    <?php else: ?>
+        <p class="small text-muted">
+            <?php echo Language::_('Brandforge.dashboard.usage_unavailable', true); ?>
+        </p>
+    <?php endif; ?>
+
+<?php endif; ?>

@@ -1,0 +1,26 @@
+{
+    "version": "1.0.0",
+    "name": "Brandforge.name",
+    "description": "Brandforge.description",
+    "authors": [
+        { "name": "BrandForge", "url": "https://brandforge.software" }
+    ],
+
+    "service": { "name_key": "godmode_service_id" },
+    "package": { "name_key": "plan_code" },
+
+    "module": {
+        "row":     "Brandforge.module_row",
+        "rows":    "Brandforge.module_row_plural",
+        "group":   "Brandforge.module_group",
+        "row_key": "api_url"
+    },
+
+    "email_tags": {
+        "module":  ["api_url"],
+        "package": ["plan_code", "brand_name"],
+        "service": ["godmode_service_id", "godmode_workspace_id"]
+    },
+
+    "icon": "bi-stars"
+}

@@ -1,0 +1,9 @@
+{
+    "name": "brandforge/blesta-module",
+    "description": "BrandForge provisioning module for Blesta",
+    "type": "blesta-module",
+    "license": "proprietary",
+    "authors": [
+        { "name": "BrandForge", "homepage": "https://brandforge.software" }
+    ]
+}
