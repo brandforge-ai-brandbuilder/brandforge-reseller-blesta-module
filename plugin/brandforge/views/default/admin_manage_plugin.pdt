@@ -1,0 +1,61 @@
+<?php
+/**
+ * @var \stdClass $vars
+ * @var array $errors
+ * @var int|string|null $plugin_id
+ */
+?>
+<?php if (!empty($errors)): ?>
+    <div class="alert alert-danger" role="alert">
+        <ul class="mb-0">
+            <?php foreach ($errors as $field_errors): ?>
+                <?php foreach ((array) $field_errors as $message): ?>
+                    <li><?php echo $this->Html->safe($message); ?></li>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
+
+<form method="post" action="<?php echo $this->Html->safe($this->base_uri . 'settings/company/plugins/manage/' . ($plugin_id ?? '')); ?>">
+    <input type="hidden" name="_csrf_token" value="<?php echo $this->Html->safe($this->Form->getCsrfToken()); ?>">
+
+    <div class="mb-3">
+        <label class="form-label" for="brandforge_api_url">
+            <?php echo $this->_('AdminManagePlugin.field.api_url', true); ?>
+        </label>
+        <input type="text" class="form-control" id="brandforge_api_url" name="api_url"
+               placeholder="https://app.brandforge.software"
+               value="<?php echo $this->Html->safe($vars->api_url ?? ''); ?>">
+        <div class="form-text"><?php echo $this->_('AdminManagePlugin.field.api_url.tooltip', true); ?></div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="brandforge_api_key">
+            <?php echo $this->_('AdminManagePlugin.field.api_key', true); ?>
+        </label>
+        <input type="password" class="form-control" id="brandforge_api_key" name="api_key"
+               value="<?php echo $this->Html->safe($vars->api_key ?? ''); ?>">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="brandforge_module_row_id">
+            <?php echo $this->_('AdminManagePlugin.field.module_row_id', true); ?>
+        </label>
+        <input type="text" class="form-control" id="brandforge_module_row_id" name="module_row_id"
+               value="<?php echo $this->Html->safe((string) ($vars->module_row_id ?? '')); ?>">
+        <div class="form-text"><?php echo $this->_('AdminManagePlugin.field.module_row_id.tooltip', true); ?></div>
+    </div>
+
+    <div class="mb-3">
+        <div class="form-check form-switch">
+            <input type="checkbox" class="form-check-input" id="brandforge_debug_mode" name="debug_mode"
+                   value="1" <?php echo !empty($vars->debug_mode) ? 'checked' : ''; ?>>
+            <label class="form-check-label" for="brandforge_debug_mode">
+                <?php echo $this->_('AdminManagePlugin.field.debug_mode', true); ?>
+            </label>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary"><?php echo $this->_('AdminManagePlugin.btn.save', true); ?></button>
+</form>

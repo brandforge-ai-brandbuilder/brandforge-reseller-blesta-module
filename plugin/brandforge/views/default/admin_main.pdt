@@ -1,0 +1,157 @@
+<?php
+/**
+ * @var \stdClass $settings
+ * @var bool $has_creds
+ * @var \stdClass[] $mappings
+ * @var int $total
+ * @var int $linked
+ * @var int $pending
+ * @var \stdClass[] $blesta_packages
+ */
+?>
+<?php $this->Widget->setBodyWrapper(false); ?>
+<?php $this->Widget->create($this->_('AdminMain.page_title', true)); ?>
+
+<div class="card-body">
+    <div class="d-flex justify-content-end flex-wrap gap-2 mb-3">
+        <?php $this->Form->create($this->base_uri . 'plugin/brandforge/admin_main/sync_all/', ['class' => 'd-inline']); ?>
+            <?php $this->Form->fieldSubmit(
+                'submit',
+                $this->_('AdminMain.btn.sync_all', true),
+                ['class' => 'btn btn-primary btn-sm']
+            ); ?>
+        <?php $this->Form->end(); ?>
+
+        <?php $this->Form->create($this->base_uri . 'plugin/brandforge/admin_main/reset_all/', ['class' => 'd-inline']); ?>
+            <button type="submit" class="btn btn-outline-danger btn-sm modal-confirm-delete"
+                    data-confirm-message="<?php echo $this->Html->safe($this->_('AdminMain.btn.reset.confirm', true)); ?>">
+                <i class="bi bi-arrow-counterclockwise"></i> <?php $this->_('AdminMain.btn.reset'); ?>
+            </button>
+        <?php $this->Form->end(); ?>
+    </div>
+
+    <?php if (!$has_creds): ?>
+        <div class="alert alert-warning d-flex align-items-start" role="alert">
+            <i class="bi bi-exclamation-triangle me-2 mt-1"></i>
+            <div><?php $this->_('AdminMain.need_credentials'); ?></div>
+        </div>
+    <?php endif; ?>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold"><?php echo (int) $total; ?></div>
+                <div class="small text-body-secondary text-uppercase"><?php $this->_('AdminMain.stat.total'); ?></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-success"><?php echo (int) $linked; ?></div>
+                <div class="small text-body-secondary text-uppercase"><?php $this->_('AdminMain.stat.linked'); ?></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="border rounded p-3 text-center h-100">
+                <div class="fs-3 fw-bold text-warning"><?php echo (int) $pending; ?></div>
+                <div class="small text-body-secondary text-uppercase"><?php $this->_('AdminMain.stat.pending'); ?></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php if (empty($mappings)): ?>
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+        <p class="mt-3 mb-0"><?php $this->_('AdminMain.table.empty'); ?></p>
+    </div>
+<?php else: ?>
+    <div class="table-responsive">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th><?php $this->_('AdminMain.col.name'); ?></th>
+                <th><?php $this->_('AdminMain.col.slug'); ?></th>
+                <th><?php $this->_('AdminMain.col.godmode_id'); ?></th>
+                <th><?php $this->_('AdminMain.col.blesta_package'); ?></th>
+                <th><?php $this->_('AdminMain.col.status'); ?></th>
+                <th><?php $this->_('AdminMain.col.actions'); ?></th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($mappings as $mapping):
+            $isLinked = !empty($mapping->blesta_package_id);
+            $encodedId = rawurlencode($mapping->godmode_package_id);
+        ?>
+            <tr>
+                <td><strong><?php echo $this->Html->safe($mapping->godmode_name); ?></strong></td>
+                <td><code><?php echo $this->Html->safe($mapping->godmode_slug); ?></code></td>
+                <td><small class="text-body-secondary"><?php echo $this->Html->safe($mapping->godmode_package_id); ?></small></td>
+                <td>
+                    <?php if ($isLinked): ?>
+                        <code>#<?php echo (int) $mapping->blesta_package_id; ?></code>
+                    <?php else: ?>
+                        <span class="text-body-secondary">&mdash;</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if ($isLinked): ?>
+                        <span class="badge bg-success"><?php $this->_('AdminMain.status.linked_label'); ?></span>
+                    <?php else: ?>
+                        <span class="badge bg-warning text-dark"><?php $this->_('AdminMain.status.pending_label'); ?></span>
+                    <?php endif; ?>
+                </td>
+                <td class="text-nowrap">
+                    <?php if (!$isLinked): ?>
+                        <?php $this->Form->create(
+                            $this->base_uri . 'plugin/brandforge/admin_main/auto_create_package/' . $encodedId . '/',
+                            ['class' => 'd-inline']
+                        ); ?>
+                            <button type="submit" class="btn btn-sm btn-outline-success"
+                                    title="<?php echo $this->Html->safe($this->_('AdminMain.action.auto_create', true)); ?>">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+                        <?php $this->Form->end(); ?>
+
+                        <?php $this->Form->create(
+                            $this->base_uri . 'plugin/brandforge/admin_main/link_package/',
+                            ['class' => 'd-inline']
+                        ); ?>
+                            <input type="hidden" name="godmode_package_id"
+                                   value="<?php echo $this->Html->safe($mapping->godmode_package_id); ?>">
+                            <select name="blesta_package_id" class="form-select form-select-sm d-inline-block"
+                                    style="width:auto;">
+                                <option value=""><?php $this->_('AdminMain.action.link_placeholder'); ?></option>
+                                <?php foreach ($blesta_packages as $package): ?>
+                                    <option value="<?php echo (int) $package->id; ?>">
+                                        <?php echo $this->Html->safe($package->name); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary"
+                                    title="<?php echo $this->Html->safe($this->_('AdminMain.action.link', true)); ?>">
+                                <i class="bi bi-link-45deg"></i>
+                            </button>
+                        <?php $this->Form->end(); ?>
+                    <?php else: ?>
+                        <?php $this->Form->create(
+                            $this->base_uri . 'plugin/brandforge/admin_main/unlink_package/' . $encodedId . '/',
+                            ['class' => 'd-inline']
+                        ); ?>
+                            <button type="submit" class="btn btn-sm btn-outline-danger modal-confirm-delete"
+                                    data-confirm-message="<?php echo $this->Html->safe(
+                                        Language::_('AdminMain.action.unlink.confirm', true, $mapping->godmode_name)
+                                    ); ?>"
+                                    title="<?php echo $this->Html->safe($this->_('AdminMain.action.unlink', true)); ?>">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        <?php $this->Form->end(); ?>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    </div>
+<?php endif; ?>
+
+<?php $this->Widget->end(); ?>

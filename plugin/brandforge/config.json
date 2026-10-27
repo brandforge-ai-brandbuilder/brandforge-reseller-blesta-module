@@ -1,0 +1,9 @@
+{
+    "version": "1.0.0",
+    "name": "BrandforgePlugin.name",
+    "description": "BrandforgePlugin.description",
+    "icon": "bi bi-arrow-left-right",
+    "authors": [
+        { "name": "BrandForge", "url": "https://brandforge.software" }
+    ]
+}

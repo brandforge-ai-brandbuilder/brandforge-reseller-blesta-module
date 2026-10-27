@@ -1,0 +1,9 @@
+{
+    "name": "brandforge/blesta-plugin",
+    "description": "BrandForge Package Sync admin plugin for Blesta",
+    "type": "blesta-plugin",
+    "license": "proprietary",
+    "authors": [
+        { "name": "BrandForge", "homepage": "https://brandforge.software" }
+    ]
+}
