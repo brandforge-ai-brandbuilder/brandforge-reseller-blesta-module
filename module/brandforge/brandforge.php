@@ -98,6 +98,10 @@ class Brandforge extends Module
         $this->view = new View('add_row', 'default');
         $this->view->base_uri = $this->base_uri;
         $this->view->setDefaultView('components' . DS . 'modules' . DS . 'brandforge' . DS);
+
+        Loader::loadHelpers($this, ['Form', 'Html', 'Widget']);
+
+        $this->view->set('module', $this->getCurrentModule());
         $this->view->set('vars', (object) $vars);
         return $this->view->fetch();
     }
@@ -111,8 +115,26 @@ class Brandforge extends Module
         $this->view = new View('edit_row', 'default');
         $this->view->base_uri = $this->base_uri;
         $this->view->setDefaultView('components' . DS . 'modules' . DS . 'brandforge' . DS);
+
+        Loader::loadHelpers($this, ['Form', 'Html', 'Widget']);
+
+        $this->view->set('module', $this->getCurrentModule());
+        $this->view->set('module_row', $module_row);
         $this->view->set('vars', (object) $vars);
         return $this->view->fetch();
+    }
+
+    /**
+     * manageAddRow()/manageEditRow() aren't handed the module info the way
+     * manageModule() is (confirmed against Blesta 6.0.2 core
+     * admin_company_modules.php) — fetch it ourselves, same as the stock
+     * cpanel module does, so the views can link "back to manage".
+     */
+    private function getCurrentModule(): object
+    {
+        Loader::loadModels($this, ['ModuleManager']);
+        $rows = $this->ModuleManager->getByClass('brandforge', Configure::get('Blesta.company_id'));
+        return (object) ($rows[0] ?? []);
     }
 
     public function addModuleRow(array &$vars)

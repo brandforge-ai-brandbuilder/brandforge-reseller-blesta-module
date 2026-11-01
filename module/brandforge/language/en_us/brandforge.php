@@ -10,6 +10,12 @@ $lang['Brandforge.module_group'] = 'Godmode Account Group';
 $lang['Brandforge.row_meta.api_url'] = 'Godmode API URL';
 $lang['Brandforge.row_meta.api_key'] = 'Godmode API Key';
 
+$lang['Brandforge.back_to_manage'] = 'Back';
+$lang['Brandforge.add_row.box_title'] = 'Add Godmode Account';
+$lang['Brandforge.add_row.add_btn'] = 'Add Account';
+$lang['Brandforge.edit_row.box_title'] = 'Edit Godmode Account';
+$lang['Brandforge.edit_row.save_btn'] = 'Save Changes';
+
 // Package meta fields (branding — per-package, mirrors the WHMCS module's
 // per-product Module Settings)
 $lang['Brandforge.package_meta.plan_code'] = 'Godmode Plan Code';

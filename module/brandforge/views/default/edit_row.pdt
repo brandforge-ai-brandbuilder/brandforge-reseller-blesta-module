@@ -1,11 +1,41 @@
+<?php /** @var View $this **/ ?>
+<?php
+$this->Form->create(null, ['class' => 'disable-on-submit']);
+
+$this->Widget->clear();
+$this->Widget->setLinkButtons([
+    [
+        'name' => $this->_('Brandforge.back_to_manage', true),
+        'icon' => 'bi bi-arrow-left me-1',
+        'attributes' => ['href' => $this->base_uri . 'settings/company/modules/manage/' . ($module->id ?? null)],
+    ],
+]);
+$this->Widget->create($this->_('Brandforge.edit_row.box_title', true));
+?>
+
 <div class="mb-3">
     <label class="form-label" for="brandforge_api_url"><?php $this->_('Brandforge.row_meta.api_url'); ?></label>
-    <input type="text" class="form-control" id="brandforge_api_url" name="api_url"
-           placeholder="https://brandforge.software"
-           value="<?php echo htmlspecialchars($vars->api_url ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+    <?php $this->Form->fieldText('api_url', $vars->api_url ?? null, [
+        'id' => 'brandforge_api_url',
+        'class' => 'form-control',
+        'placeholder' => 'https://brandforge.software',
+    ]); ?>
 </div>
 <div class="mb-3">
     <label class="form-label" for="brandforge_api_key"><?php $this->_('Brandforge.row_meta.api_key'); ?></label>
-    <input type="password" class="form-control" id="brandforge_api_key" name="api_key"
-           value="<?php echo htmlspecialchars($vars->api_key ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+    <?php $this->Form->fieldPassword('api_key', [
+        'id' => 'brandforge_api_key',
+        'class' => 'form-control',
+        'value' => $vars->api_key ?? '',
+    ]); ?>
 </div>
+
+<?php $this->Widget->footer(); ?>
+<div class="d-flex justify-content-end">
+    <?php $this->Form->fieldSubmit('save', $this->_('Brandforge.edit_row.save_btn', true), ['class' => 'btn btn-primary']); ?>
+</div>
+
+<?php
+$this->Widget->end();
+$this->Form->end();
+?>
