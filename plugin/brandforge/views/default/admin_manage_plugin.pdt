@@ -2,9 +2,15 @@
 /**
  * @var \stdClass $vars
  * @var array $errors
+ * @var bool $saved
  * @var int|string|null $plugin_id
  */
 ?>
+<?php if (!empty($saved)): ?>
+    <div class="alert alert-success" role="alert">
+        <?php echo $this->_('AdminManagePlugin.flash.saved', true); ?>
+    </div>
+<?php endif; ?>
 <?php if (!empty($errors)): ?>
     <div class="alert alert-danger" role="alert">
         <ul class="mb-0">
@@ -25,7 +31,7 @@
             <?php echo $this->_('AdminManagePlugin.field.api_url', true); ?>
         </label>
         <input type="text" class="form-control" id="brandforge_api_url" name="api_url"
-               placeholder="https://app.brandforge.software"
+               placeholder="https://brandforge.software"
                value="<?php echo $this->Html->safe($vars->api_url ?? ''); ?>">
         <div class="form-text"><?php echo $this->_('AdminManagePlugin.field.api_url.tooltip', true); ?></div>
     </div>

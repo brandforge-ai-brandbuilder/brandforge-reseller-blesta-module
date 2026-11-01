@@ -31,10 +31,16 @@ class AdminManagePlugin extends AppController
         $companyId = Configure::get('Blesta.company_id');
         $vars = $this->BrandforgeSettings->get($companyId);
         $errors = [];
+        $saved = false;
 
         if (!empty($this->post)) {
             if ($this->BrandforgeSettings->save($companyId, $this->post)) {
-                $this->parent->flashMessage('message', Language::_('AdminManagePlugin.flash.saved', true));
+                // NOT flashMessage() — this page handles its POST and renders
+                // its response in the same request (it's embedded by
+                // AdminCompanyPlugins::manage(), never redirected), so a
+                // session-based flash message wouldn't be read until the
+                // NEXT page load. Render the confirmation inline instead.
+                $saved = true;
                 $vars = $this->BrandforgeSettings->get($companyId);
             } else {
                 $errors = $this->BrandforgeSettings->errors();
@@ -48,6 +54,7 @@ class AdminManagePlugin extends AppController
         return $this->partial('admin_manage_plugin', [
             'vars' => $vars,
             'errors' => $errors,
+            'saved' => $saved,
             'plugin_id' => $this->plugin_id,
         ]);
     }
