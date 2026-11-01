@@ -30,3 +30,6 @@ logs/
 # Test output
 coverage/
 .phpunit.cache/
+
+# Packaged zips for manual install/testing (regenerate from module/ and plugin/)
+*.zip

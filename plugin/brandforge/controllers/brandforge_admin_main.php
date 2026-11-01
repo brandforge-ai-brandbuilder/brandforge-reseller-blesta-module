@@ -7,8 +7,17 @@
  * routable method (plugin controllers are directly routable — see
  * reference/plugins/create.md §5); each one performs its action, flashes a
  * message, and redirects back to index() so there's no resubmission risk.
+ *
+ * NAMED "BrandforgeAdminMain", NOT "AdminMain" — confirmed on a live Blesta
+ * 6.0.2 install that a plugin controller class literally named `AdminMain`
+ * gets picked up by whatever mechanism Blesta uses to resolve the bare
+ * `/admin/` dashboard route, hijacking the ENTIRE admin area (verified via
+ * error log: the crash kept firing from this plugin's controller for a
+ * request to `/admin/` itself, even after the plugin's folder was renamed —
+ * so it's resolved dynamically by class name, not a stale cache). Keep this
+ * class name unique; do not rename it back to `AdminMain`.
  */
-class AdminMain extends BrandforgeController
+class BrandforgeAdminMain extends BrandforgeController
 {
     private $settings;
 
@@ -19,7 +28,7 @@ class AdminMain extends BrandforgeController
 
         $this->uses(['Brandforge.BrandforgeSettings', 'Brandforge.BrandforgePackageMap']);
         $this->helpers(['Form', 'Html', 'Widget']);
-        Language::loadLang('admin_main', null, PLUGINDIR . 'brandforge' . DS . 'language' . DS);
+        Language::loadLang('brandforge_admin_main', null, PLUGINDIR . 'brandforge' . DS . 'language' . DS);
 
         Loader::load(PLUGINDIR . 'brandforge' . DS . 'apis' . DS . 'brandforge_sync_exceptions.php');
         Loader::load(PLUGINDIR . 'brandforge' . DS . 'apis' . DS . 'brandforge_sync_client.php');
@@ -58,7 +67,7 @@ class AdminMain extends BrandforgeController
             $result = $this->BrandforgePackageMap->syncAll($this->company_id, $client);
         } catch (Exception $e) {
             $this->flashMessage('error', Language::_('AdminMain.flash.sync_failed', true, $e->getMessage()));
-            $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
             return;
         }
 
@@ -71,7 +80,7 @@ class AdminMain extends BrandforgeController
             $this->flashMessage('message', Language::_('AdminMain.flash.sync_success', true, $result['synced']));
         }
 
-        $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
     }
 
     public function auto_create_package()
@@ -83,26 +92,26 @@ class AdminMain extends BrandforgeController
 
         if (!$mapping) {
             $this->flashMessage('error', Language::_('AdminMain.flash.package_not_found', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
             return;
         }
 
         if (!empty($mapping->blesta_package_id)) {
             $this->flashMessage('error', Language::_('AdminMain.flash.already_linked', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
             return;
         }
 
         if (empty($this->settings->module_row_id)) {
             $this->flashMessage('error', Language::_('AdminMain.flash.no_module_row', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
             return;
         }
 
         $moduleId = $this->getBrandforgeModuleId();
         if (!$moduleId) {
             $this->flashMessage('error', Language::_('AdminMain.flash.module_not_installed', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
             return;
         }
 
@@ -120,7 +129,7 @@ class AdminMain extends BrandforgeController
             $this->flashMessage('error', Language::_('AdminMain.flash.create_failed', true, $e->getMessage()));
         }
 
-        $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
     }
 
     public function link_package()
@@ -135,7 +144,7 @@ class AdminMain extends BrandforgeController
             $this->flashMessage('message', Language::_('AdminMain.flash.linked', true));
         }
 
-        $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
     }
 
     public function unlink_package()
@@ -146,7 +155,7 @@ class AdminMain extends BrandforgeController
             $this->flashMessage('message', Language::_('AdminMain.flash.unlinked', true));
         }
 
-        $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
     }
 
     public function reset_all()
@@ -156,7 +165,7 @@ class AdminMain extends BrandforgeController
         // reset_all (products preserved on reset).
         $this->BrandforgePackageMap->reset($this->company_id);
         $this->flashMessage('message', Language::_('AdminMain.flash.reset_complete', true));
-        $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
     }
 
     // -------------------------------------------------------------------
@@ -167,7 +176,7 @@ class AdminMain extends BrandforgeController
     {
         if ($this->settings->api_url === '' || $this->settings->api_key === '') {
             $this->flashMessage('error', Language::_('AdminMain.flash.no_credentials', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/admin_main/');
+            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
             return null;
         }
 

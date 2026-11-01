@@ -10,9 +10,9 @@
  *
  * Deliberately re-derived against Blesta's own plugin contract rather than
  * transliterating WHMCS's procedural addon — see
- * controllers/admin_main.php and models/brandforge_package_map.php for the
- * actual sync/create logic. This handler is just the declarations Blesta's
- * PluginManager reads on install/upgrade.
+ * controllers/brandforge_admin_main.php and models/brandforge_package_map.php
+ * for the actual sync/create logic. This handler is just the declarations
+ * Blesta's PluginManager reads on install/upgrade.
  */
 class BrandforgePlugin extends Plugin
 {
@@ -96,7 +96,7 @@ class BrandforgePlugin extends Plugin
         return [
             [
                 'location' => 'nav_staff',
-                'url' => 'plugin/brandforge/admin_main/',
+                'url' => 'plugin/brandforge/brandforge_admin_main/',
                 'name' => 'BrandforgePlugin.nav.main',
                 'icon' => 'bi bi-arrow-left-right'
             ]
@@ -115,7 +115,7 @@ class BrandforgePlugin extends Plugin
             [
                 'name' => Language::_('BrandforgePlugin.permission.group', true),
                 'level' => 'staff',
-                'alias' => 'brandforge.admin_main'
+                'alias' => 'brandforge.brandforge_admin_main'
             ]
         ];
     }
@@ -124,9 +124,9 @@ class BrandforgePlugin extends Plugin
     {
         return [
             [
-                'group_alias' => 'brandforge.admin_main',
+                'group_alias' => 'brandforge.brandforge_admin_main',
                 'name' => Language::_('BrandforgePlugin.permission.admin_main', true),
-                'alias' => 'brandforge.admin_main',
+                'alias' => 'brandforge.brandforge_admin_main',
                 'action' => '*'
             ]
         ];
