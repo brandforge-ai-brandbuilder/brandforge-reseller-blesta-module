@@ -40,6 +40,13 @@ $lang['Brandforge.dashboard.usage_unavailable'] = 'Usage data is temporarily una
 
 // Manage page
 $lang['Brandforge.manage.description'] = 'Godmode accounts (servers) connect this module to a Godmode API. Add one, then link a package to a Godmode Plan Code to start provisioning.';
+$lang['Brandforge.manage.add_module_row'] = 'Add Godmode Account';
+$lang['Brandforge.manage.module_rows_heading.name'] = 'Godmode API URL';
+$lang['Brandforge.manage.module_rows_heading.options'] = 'Options';
+$lang['Brandforge.manage.module_rows_no_results'] = 'No Godmode Accounts have been added yet.';
+$lang['Brandforge.manage.module_rows.edit'] = 'Edit';
+$lang['Brandforge.manage.module_rows.delete'] = 'Delete';
+$lang['Brandforge.manage.module_rows.confirm_delete'] = 'Are you sure you want to delete this Godmode Account? Any packages still linked to it will stop working until re-linked to another account.';
 
 // Errors
 $lang['Brandforge.!error.module_row.missing'] = 'No Godmode account is configured for this module.';

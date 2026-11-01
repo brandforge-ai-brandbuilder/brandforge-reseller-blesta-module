@@ -68,9 +68,29 @@ class Brandforge extends Module
     // Module rows (Godmode API connections)
     // -------------------------------------------------------------------
 
+    /**
+     * Renders the module row list + "Add Godmode Account" button.
+     *
+     * Blesta's core manage() action (app/controllers/admin_company_modules.php)
+     * does nothing but echo this method's return value — it does NOT
+     * automatically render a row list or an add-row button (confirmed against
+     * the actual Blesta 6.0.2 core source). Every module is expected to build
+     * that UI itself; this mirrors the stock cpanel module's manage.pdt
+     * pattern, simplified since BrandForge doesn't use module row groups
+     * (no round-robin/capacity-limit selection — a client always targets a
+     * specific Godmode Account).
+     */
     public function manageModule($module, array &$vars)
     {
-        return '<p>' . Language::_('Brandforge.manage.description', true) . '</p>';
+        $this->view = new View('manage', 'default');
+        $this->view->base_uri = $this->base_uri;
+        $this->view->setDefaultView('components' . DS . 'modules' . DS . 'brandforge' . DS);
+
+        Loader::loadHelpers($this, ['Form', 'Html', 'Widget']);
+
+        $this->view->set('module', $module);
+
+        return $this->view->fetch();
     }
 
     public function manageAddRow(array &$vars)
