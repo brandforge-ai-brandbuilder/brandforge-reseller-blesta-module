@@ -43,6 +43,16 @@ $lang['Brandforge.dashboard.workspaces_active_of_max'] = '%1$s of %2$s active';
 $lang['Brandforge.dashboard.workspaces_active_count'] = '%1$s active';
 $lang['Brandforge.dashboard.service_id'] = 'Godmode Service ID';
 $lang['Brandforge.dashboard.usage_unavailable'] = 'Usage data is temporarily unavailable.';
+$lang['Brandforge.dashboard.label_package'] = 'Package';
+$lang['Brandforge.dashboard.label_status'] = 'Status';
+$lang['Brandforge.dashboard.label_subscription_id'] = 'Subscription ID';
+$lang['Brandforge.dashboard.label_workspace_id'] = 'Workspace ID';
+$lang['Brandforge.dashboard.label_provisioned'] = 'Provisioned';
+$lang['Brandforge.dashboard.remaining'] = 'remaining';
+$lang['Brandforge.dashboard.upgrade_plan'] = 'Upgrade Plan';
+$lang['Brandforge.dashboard.untitled'] = 'Untitled Brand';
+$lang['Brandforge.dashboard.active'] = 'Active';
+$lang['Brandforge.dashboard.inactive'] = 'Inactive';
 
 // Manage page
 $lang['Brandforge.manage.description'] = 'Godmode accounts (servers) connect this module to a Godmode API. Add one, then link a package to a Godmode Plan Code to start provisioning.';

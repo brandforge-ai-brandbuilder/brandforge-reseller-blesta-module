@@ -4,6 +4,7 @@
  * @var array $errors
  * @var bool $saved
  * @var int|string|null $plugin_id
+ * @var \stdClass[] $module_rows
  */
 ?>
 <?php if (!empty($saved)): ?>
@@ -26,32 +27,28 @@
 <form method="post" action="<?php echo $this->Html->safe($this->base_uri . 'settings/company/plugins/manage/' . ($plugin_id ?? '')); ?>">
     <input type="hidden" name="_csrf_token" value="<?php echo $this->Html->safe($this->Form->getCsrfToken()); ?>">
 
-    <div class="mb-3">
-        <label class="form-label" for="brandforge_api_url">
-            <?php echo $this->_('AdminManagePlugin.field.api_url', true); ?>
-        </label>
-        <input type="text" class="form-control" id="brandforge_api_url" name="api_url"
-               placeholder="https://brandforge.software"
-               value="<?php echo $this->Html->safe($vars->api_url ?? ''); ?>">
-        <div class="form-text"><?php echo $this->_('AdminManagePlugin.field.api_url.tooltip', true); ?></div>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label" for="brandforge_api_key">
-            <?php echo $this->_('AdminManagePlugin.field.api_key', true); ?>
-        </label>
-        <input type="password" class="form-control" id="brandforge_api_key" name="api_key"
-               value="<?php echo $this->Html->safe($vars->api_key ?? ''); ?>">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label" for="brandforge_module_row_id">
-            <?php echo $this->_('AdminManagePlugin.field.module_row_id', true); ?>
-        </label>
-        <input type="text" class="form-control" id="brandforge_module_row_id" name="module_row_id"
-               value="<?php echo $this->Html->safe((string) ($vars->module_row_id ?? '')); ?>">
-        <div class="form-text"><?php echo $this->_('AdminManagePlugin.field.module_row_id.tooltip', true); ?></div>
-    </div>
+    <?php if (empty($module_rows)): ?>
+        <div class="alert alert-warning d-flex align-items-start" role="alert">
+            <i class="bi bi-exclamation-triangle me-2 mt-1"></i>
+            <div><?php echo $this->_('AdminManagePlugin.field.module_row_id.none', true); ?></div>
+        </div>
+    <?php else: ?>
+        <div class="mb-3">
+            <label class="form-label" for="brandforge_module_row_id">
+                <?php echo $this->_('AdminManagePlugin.field.module_row_id', true); ?>
+            </label>
+            <select class="form-select" id="brandforge_module_row_id" name="module_row_id">
+                <option value=""><?php echo $this->_('AdminManagePlugin.field.module_row_id.placeholder', true); ?></option>
+                <?php foreach ($module_rows as $row): ?>
+                    <option value="<?php echo (int) $row->id; ?>"
+                        <?php echo ((int) ($vars->module_row_id ?? 0) === (int) $row->id) ? 'selected' : ''; ?>>
+                        #<?php echo (int) $row->id; ?> &mdash; <?php echo $this->Html->safe($row->meta->api_url ?? ''); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <div class="form-text"><?php echo $this->_('AdminManagePlugin.field.module_row_id.tooltip', true); ?></div>
+        </div>
+    <?php endif; ?>
 
     <div class="mb-3">
         <div class="form-check form-switch">

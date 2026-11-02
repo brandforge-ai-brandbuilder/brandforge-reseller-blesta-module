@@ -175,8 +175,8 @@ class BrandforgePackageMap extends AppModel
 
         $groupId = $this->PackageGroups->add([
             'company_id' => $company_id,
-            'name' => self::GROUP_NAME,
-            'description' => 'BrandForge plans synced from Godmode.',
+            'names' => [['lang' => 'en_us', 'name' => self::GROUP_NAME]],
+            'descriptions' => [['lang' => 'en_us', 'description' => 'BrandForge plans synced from Godmode.']],
             'type' => 'standard',
         ]);
 

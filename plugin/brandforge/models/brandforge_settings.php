@@ -1,12 +1,17 @@
 <?php
 /**
- * The plugin's own settings — Godmode API URL/Key, debug flag, and which
- * brandforge MODULE row newly-created packages should bind to.
+ * The plugin's own settings — a debug flag, and which brandforge MODULE
+ * row (Godmode account) Package Sync should talk to and bind newly-created
+ * packages to.
  *
- * One row per company. Deliberately separate storage from the brandforge
- * Module's own row credentials (module/brandforge/brandforge.php) — mirrors
- * the WHMCS addon, whose godmode_api_url/godmode_api_key are also stored
- * independently of the server module's.
+ * One row per company. No separate Godmode API URL/Key here on purpose:
+ * Package Sync reuses whichever module row is selected, fetching its
+ * credentials via ModuleManager::getRow() (see AdminPackageSync::getClient())
+ * instead of asking the admin to re-enter them. The WHMCS addon keeps its
+ * own separate godmode_api_url/godmode_api_key because a WHMCS install can
+ * have several differently-configured server instances; in practice a
+ * Blesta company has one Godmode account per module row, so storing the
+ * same credentials twice was pure duplication, not real flexibility.
  */
 class BrandforgeSettings extends AppModel
 {
@@ -30,8 +35,6 @@ class BrandforgeSettings extends AppModel
         return (object) [
             'id' => null,
             'company_id' => $company_id,
-            'api_url' => '',
-            'api_key' => '',
             'module_row_id' => null,
             'debug_mode' => 0,
         ];
@@ -51,8 +54,6 @@ class BrandforgeSettings extends AppModel
         $now = date('Y-m-d H:i:s');
 
         $data = [
-            'api_url' => rtrim(trim((string) ($vars['api_url'] ?? '')), '/'),
-            'api_key' => trim((string) ($vars['api_key'] ?? '')),
             'module_row_id' => !empty($vars['module_row_id']) ? (int) $vars['module_row_id'] : null,
             'debug_mode' => !empty($vars['debug_mode']) ? 1 : 0,
             'date_updated' => $now,
@@ -72,15 +73,6 @@ class BrandforgeSettings extends AppModel
     private function getRules(): array
     {
         return [
-            'api_url' => [
-                'format' => [
-                    'rule' => function ($value) {
-                        $value = trim((string) $value);
-                        return $value === '' || (bool) preg_match('#^https?://#i', $value);
-                    },
-                    'message' => Language::_('BrandforgePlugin.!error.settings.api_url.invalid', true)
-                ]
-            ],
             'module_row_id' => [
                 'valid' => [
                     'rule' => function ($value) {

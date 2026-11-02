@@ -10,7 +10,7 @@
  *
  * Deliberately re-derived against Blesta's own plugin contract rather than
  * transliterating WHMCS's procedural addon — see
- * controllers/brandforge_admin_main.php and models/brandforge_package_map.php
+ * controllers/admin_package_sync.php and models/brandforge_package_map.php
  * for the actual sync/create logic. This handler is just the declarations
  * Blesta's PluginManager reads on install/upgrade.
  */
@@ -34,16 +34,15 @@ class BrandforgePlugin extends Plugin
         }
 
         try {
-            // One settings row per company — API URL/Key/debug flag and the
-            // module row created packages bind to. Kept separate from the
-            // brandforge MODULE's own row credentials, mirroring the WHMCS
-            // addon's separately-stored godmode_api_url/godmode_api_key.
+            // One settings row per company — which brandforge MODULE row
+            // (Godmode account) new packages bind to, plus a debug flag.
+            // No separate Godmode API URL/Key here: Package Sync reuses the
+            // credentials already stored on that module row (fetched via
+            // ModuleManager::getRow()) instead of asking for them twice.
             $this->Record->query(
                 'CREATE TABLE IF NOT EXISTS `brandforge_settings` (
                     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
                     `company_id` INT UNSIGNED NOT NULL,
-                    `api_url` VARCHAR(255) NOT NULL DEFAULT \'\',
-                    `api_key` VARCHAR(255) NOT NULL DEFAULT \'\',
                     `module_row_id` INT UNSIGNED DEFAULT NULL,
                     `debug_mode` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
                     `date_added` DATETIME NOT NULL,
@@ -96,7 +95,7 @@ class BrandforgePlugin extends Plugin
         return [
             [
                 'location' => 'nav_staff',
-                'url' => 'plugin/brandforge/brandforge_admin_main/',
+                'url' => 'plugin/brandforge/admin_package_sync/',
                 'name' => 'BrandforgePlugin.nav.main',
                 'icon' => 'bi bi-arrow-left-right'
             ]
@@ -115,7 +114,7 @@ class BrandforgePlugin extends Plugin
             [
                 'name' => Language::_('BrandforgePlugin.permission.group', true),
                 'level' => 'staff',
-                'alias' => 'brandforge.brandforge_admin_main'
+                'alias' => 'brandforge.admin_package_sync'
             ]
         ];
     }
@@ -124,9 +123,9 @@ class BrandforgePlugin extends Plugin
     {
         return [
             [
-                'group_alias' => 'brandforge.brandforge_admin_main',
+                'group_alias' => 'brandforge.admin_package_sync',
                 'name' => Language::_('BrandforgePlugin.permission.admin_main', true),
-                'alias' => 'brandforge.brandforge_admin_main',
+                'alias' => 'brandforge.admin_package_sync',
                 'action' => '*'
             ]
         ];

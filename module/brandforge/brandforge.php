@@ -1,4 +1,7 @@
 <?php
+
+use Blesta\Core\Util\Input\Fields\InputFields;
+
 /**
  * BrandForge provisioning module for Blesta.
  *
@@ -766,6 +769,11 @@ class Brandforge extends Module
         $data = [
             'has_service' => $godmodeServiceId !== '',
             'service_id' => $godmodeServiceId,
+            'service_id_blesta' => (int) ($service->id ?? 0),
+            'workspace_id' => (string) ($fields->godmode_workspace_id ?? ''),
+            'package_name' => $package->name ?? '',
+            'service_status' => $service->status ?? '',
+            'provisioned' => (string) ($service->date_added ?? ''),
             'sso_url' => '',
             'sso_error' => '',
             'workspace_sso_url' => '',
@@ -779,8 +787,14 @@ class Brandforge extends Module
             'workspaces_max' => 0,
             'workspaces_active' => 0,
             'workspaces' => [],
-            'brand_name' => $package->meta->brand_name ?? 'BrandForge',
-            'brand_color' => $package->meta->brand_color ?? '#6366f1',
+            // '?:' not '??' — buildPackageMeta() always writes these keys,
+            // defaulting to '' rather than omitting them, so an empty string
+            // (not null) is the "unset" value for a package nobody has
+            // branded yet (e.g. one made via the plugin's "Create Package").
+            // '??' never falls back on '', which rendered the Launch button
+            // as invisible white-on-white (background-color: ; color: #fff;).
+            'brand_name' => $package->meta->brand_name ?: 'BrandForge',
+            'brand_color' => $package->meta->brand_color ?: '#6366f1',
             'brand_color_secondary' => $package->meta->brand_color_secondary ?? '',
         ];
 
@@ -816,7 +830,11 @@ class Brandforge extends Module
 
             $allocated = (int) ($credits['allocated'] ?? 0);
             $used = (int) ($credits['used'] ?? 0);
-            $list = $workspacesData['list'] ?? [];
+            // Godmode normally nests the workspace list under 'list', but has
+            // been observed returning the workspace objects directly as the
+            // array's own entries — tolerate both shapes, same as the WHMCS
+            // module's brandforge_ClientArea().
+            $list = $workspacesData['list'] ?? (array_values(array_filter($workspacesData, 'is_array')) ?: []);
 
             $data['has_usage_data'] = true;
             $data['credits_allocated'] = $allocated;
@@ -865,12 +883,15 @@ class Brandforge extends Module
 
     private function findOpenAccount(int $clientId)
     {
+        // Record::fetch() returns false (not null) when nothing matches —
+        // normalize to null here so callers can use a plain !== null check,
+        // same convention as decrementAccountPlanCount()/getModuleRow().
         return $this->Record->select()
             ->from('brandforge_accounts')
             ->where('client_id', '=', $clientId)
             ->where('closed_at', '=', null)
             ->order(['date_added' => 'ASC'])
-            ->fetch();
+            ->fetch() ?: null;
     }
 
     private function insertAccount(int $clientId, string $godmodeServiceId, string $workspaceId, string $userId): void

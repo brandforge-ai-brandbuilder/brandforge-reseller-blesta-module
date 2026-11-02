@@ -56,6 +56,27 @@ class AdminManagePlugin extends AppController
             'errors' => $errors,
             'saved' => $saved,
             'plugin_id' => $this->plugin_id,
+            'module_rows' => $this->getBrandforgeModuleRows($companyId),
         ]);
+    }
+
+    /**
+     * The brandforge module's own rows (Godmode accounts), for the
+     * "Module Row" dropdown — Package Sync reuses whichever row is picked
+     * here instead of storing its own separate Godmode API URL/Key.
+     *
+     * @return \stdClass[] Each with ->id and ->meta->api_url
+     */
+    private function getBrandforgeModuleRows($companyId): array
+    {
+        Loader::loadModels($this, ['ModuleManager']);
+
+        $modules = $this->ModuleManager->getByClass('brandforge', $companyId);
+        $rows = [];
+        foreach ((array) $modules as $module) {
+            $rows = array_merge($rows, (array) $this->ModuleManager->getRows($module->id));
+        }
+
+        return $rows;
     }
 }

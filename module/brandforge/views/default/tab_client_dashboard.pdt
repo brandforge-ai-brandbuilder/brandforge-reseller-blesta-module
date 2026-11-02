@@ -13,19 +13,62 @@
             <?php echo Language::_('Brandforge.dashboard.launch', true, $brand_name); ?>
         </a>
     <?php endif; ?>
-    <?php if ($workspace_sso_url !== ''): ?>
-        <a href="<?php echo $this->Html->safe($workspace_sso_url); ?>" target="_blank" rel="noopener"
-           class="btn btn-outline-secondary btn-block mb-3">
-            <i class="fas fa-th-large mr-1"></i>
-            <?php echo Language::_('Brandforge.dashboard.view_workspace', true); ?>
-        </a>
-    <?php endif; ?>
     <?php if ($sso_error !== ''): ?>
         <div class="alert alert-warning" role="alert">
             <i class="fas fa-exclamation-triangle mr-1"></i>
             <?php echo Language::_('Brandforge.dashboard.sso_unavailable', true, $sso_error); ?>
         </div>
     <?php endif; ?>
+
+    <div class="row mb-2">
+        <div class="col-6 mb-2">
+            <div class="card h-100">
+                <div class="card-body py-2">
+                    <small class="text-muted text-uppercase d-block" style="font-size: 10px;">
+                        <?php echo Language::_('Brandforge.dashboard.label_package', true); ?>
+                    </small>
+                    <?php echo $this->Html->safe($package_name !== '' ? $package_name : $brand_name); ?>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 mb-2">
+            <div class="card h-100">
+                <div class="card-body py-2">
+                    <small class="text-muted text-uppercase d-block" style="font-size: 10px;">
+                        <?php echo Language::_('Brandforge.dashboard.label_status', true); ?>
+                    </small>
+                    <?php echo $this->Html->safe(ucfirst($service_status)); ?>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card h-100">
+                <div class="card-body py-2">
+                    <small class="text-muted text-uppercase d-block" style="font-size: 10px;">
+                        <?php echo Language::_('Brandforge.dashboard.label_subscription_id', true); ?>
+                    </small>
+                    <code style="font-size: 12px;"><?php echo $this->Html->safe($service_id); ?></code>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card h-100">
+                <div class="card-body py-2">
+                    <?php if ($workspace_id !== ''): ?>
+                        <small class="text-muted text-uppercase d-block" style="font-size: 10px;">
+                            <?php echo Language::_('Brandforge.dashboard.label_workspace_id', true); ?>
+                        </small>
+                        <code style="font-size: 12px;"><?php echo $this->Html->safe($workspace_id); ?></code>
+                    <?php elseif ($provisioned !== ''): ?>
+                        <small class="text-muted text-uppercase d-block" style="font-size: 10px;">
+                            <?php echo Language::_('Brandforge.dashboard.label_provisioned', true); ?>
+                        </small>
+                        <?php echo $this->Html->safe($provisioned); ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <?php if ($has_usage_data): ?>
         <div class="card mb-2">
@@ -41,24 +84,52 @@
                          role="progressbar" style="width: <?php echo $creditsPercent; ?>%;"
                          aria-valuenow="<?php echo $creditsPercent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-                <small class="text-muted">
-                    <?php echo Language::_('Brandforge.dashboard.credits_used_of', true, $credits_used, $credits_allocated); ?>
-                    <?php if ($credits_period_end !== ''): ?>
-                        &middot; <?php echo Language::_('Brandforge.dashboard.credits_resets', true, $credits_period_end); ?>
-                    <?php endif; ?>
-                </small>
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">
+                        <strong><?php echo (int) $credits_remaining; ?></strong>
+                        <?php echo Language::_('Brandforge.dashboard.remaining', true); ?>
+                    </small>
+                    <small class="text-muted">
+                        <?php echo Language::_('Brandforge.dashboard.credits_used_of', true, $credits_used, $credits_allocated); ?>
+                        <?php if ($credits_period_end !== ''): ?>
+                            &middot; <?php echo Language::_('Brandforge.dashboard.credits_resets', true, $credits_period_end); ?>
+                        <?php endif; ?>
+                    </small>
+                </div>
             </div>
         </div>
         <div class="card mb-2">
             <div class="card-body">
-                <h6 class="card-title"><?php echo Language::_('Brandforge.dashboard.workspaces', true); ?></h6>
-                <small class="text-muted">
-                    <?php if ($workspaces_max > 0): ?>
-                        <?php echo Language::_('Brandforge.dashboard.workspaces_active_of_max', true, $workspaces_active, $workspaces_max); ?>
-                    <?php else: ?>
-                        <?php echo Language::_('Brandforge.dashboard.workspaces_active_count', true, $workspaces_active); ?>
-                    <?php endif; ?>
-                </small>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="card-title mb-0"><?php echo Language::_('Brandforge.dashboard.workspaces', true); ?></h6>
+                    <small class="text-muted">
+                        <?php if ($workspaces_max > 0): ?>
+                            <?php echo Language::_('Brandforge.dashboard.workspaces_active_of_max', true, $workspaces_active, $workspaces_max); ?>
+                        <?php else: ?>
+                            <?php echo Language::_('Brandforge.dashboard.workspaces_active_count', true, $workspaces_active); ?>
+                        <?php endif; ?>
+                    </small>
+                </div>
+                <?php if (!empty($workspaces)): ?>
+                    <ul class="list-unstyled mb-0">
+                        <?php foreach ($workspaces as $ws):
+                            $wsActive = !(array_key_exists('active', $ws) && $ws['active'] === false);
+                            $wsName = $ws['name'] ?? Language::_('Brandforge.dashboard.untitled', true);
+                        ?>
+                            <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span>
+                                    <i class="fas fa-circle mr-1" style="font-size: 7px; color: <?php echo $wsActive ? '#10b981' : '#d1d5db'; ?>;"></i>
+                                    <?php echo $this->Html->safe($wsName); ?>
+                                </span>
+                                <span class="badge <?php echo $wsActive ? 'badge-success' : 'badge-secondary'; ?>">
+                                    <?php echo $wsActive
+                                        ? Language::_('Brandforge.dashboard.active', true)
+                                        : Language::_('Brandforge.dashboard.inactive', true); ?>
+                                </span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
             </div>
         </div>
     <?php else: ?>
@@ -66,5 +137,24 @@
             <?php echo Language::_('Brandforge.dashboard.usage_unavailable', true); ?>
         </p>
     <?php endif; ?>
+
+    <div class="row">
+        <div class="col-6">
+            <a href="<?php echo $this->Html->safe($this->base_uri . 'services/upgrade/' . (int) $service_id_blesta . '/'); ?>"
+               class="btn btn-outline-secondary btn-block">
+                <i class="fas fa-arrow-up mr-1"></i>
+                <?php echo Language::_('Brandforge.dashboard.upgrade_plan', true); ?>
+            </a>
+        </div>
+        <div class="col-6">
+            <?php if ($workspace_sso_url !== ''): ?>
+                <a href="<?php echo $this->Html->safe($workspace_sso_url); ?>" target="_blank" rel="noopener"
+                   class="btn btn-outline-secondary btn-block">
+                    <i class="fas fa-th-large mr-1"></i>
+                    <?php echo Language::_('Brandforge.dashboard.view_workspace', true); ?>
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
 
 <?php endif; ?>

@@ -8,16 +8,26 @@
  * reference/plugins/create.md §5); each one performs its action, flashes a
  * message, and redirects back to index() so there's no resubmission risk.
  *
- * NAMED "BrandforgeAdminMain", NOT "AdminMain" — confirmed on a live Blesta
- * 6.0.2 install that a plugin controller class literally named `AdminMain`
- * gets picked up by whatever mechanism Blesta uses to resolve the bare
- * `/admin/` dashboard route, hijacking the ENTIRE admin area (verified via
- * error log: the crash kept firing from this plugin's controller for a
- * request to `/admin/` itself, even after the plugin's folder was renamed —
- * so it's resolved dynamically by class name, not a stale cache). Keep this
- * class name unique; do not rename it back to `AdminMain`.
+ * NAMED "AdminPackageSync" (file admin_package_sync.php) — two separate,
+ * confirmed-on-a-live-Blesta-6.0.2-install constraints shaped this name:
+ *
+ * 1. NOT "AdminMain" — a plugin controller class literally named `AdminMain`
+ *    gets picked up by whatever mechanism Blesta uses to resolve the bare
+ *    `/admin/` dashboard route, hijacking the ENTIRE admin area.
+ * 2. MUST start with `admin_` — every stock plugin controller that works
+ *    (order's admin_forms, billing_overview's admin_main) follows this
+ *    prefix; a controller named `brandforge_admin_main` (no `admin_` prefix)
+ *    reliably failed `isLoggedIn()` despite a fully valid, correctly
+ *    populated staff session (verified by dumping raw session state) —
+ *    `isLoggedIn()`/`requireLogin()` appear to use the controller name to
+ *    decide staff-vs-client session context, and a non-`admin_`-prefixed
+ *    plugin controller name reads as a non-admin (client) request, which
+ *    naturally finds no client session and silently redirects to login.
+ *
+ * Keep this name unique, keep the `admin_` prefix, and do not rename it
+ * back to `AdminMain`.
  */
-class BrandforgeAdminMain extends BrandforgeController
+class AdminPackageSync extends BrandforgeController
 {
     private $settings;
 
@@ -28,7 +38,7 @@ class BrandforgeAdminMain extends BrandforgeController
 
         $this->uses(['Brandforge.BrandforgeSettings', 'Brandforge.BrandforgePackageMap']);
         $this->helpers(['Form', 'Html', 'Widget']);
-        Language::loadLang('brandforge_admin_main', null, PLUGINDIR . 'brandforge' . DS . 'language' . DS);
+        Language::loadLang('admin_package_sync', null, PLUGINDIR . 'brandforge' . DS . 'language' . DS);
 
         Loader::load(PLUGINDIR . 'brandforge' . DS . 'apis' . DS . 'brandforge_sync_exceptions.php');
         Loader::load(PLUGINDIR . 'brandforge' . DS . 'apis' . DS . 'brandforge_sync_client.php');
@@ -48,7 +58,7 @@ class BrandforgeAdminMain extends BrandforgeController
         }
 
         $this->set('settings', $this->settings);
-        $this->set('has_creds', $this->settings->api_url !== '' && $this->settings->api_key !== '');
+        $this->set('has_creds', !empty($this->settings->module_row_id) && $this->getModuleRow() !== null);
         $this->set('mappings', $mappings);
         $this->set('total', count($mappings));
         $this->set('linked', $linked);
@@ -66,21 +76,21 @@ class BrandforgeAdminMain extends BrandforgeController
         try {
             $result = $this->BrandforgePackageMap->syncAll($this->company_id, $client);
         } catch (Exception $e) {
-            $this->flashMessage('error', Language::_('AdminMain.flash.sync_failed', true, $e->getMessage()));
-            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+            $this->flashMessage('error', Language::_('AdminPackageSync.flash.sync_failed', true, $e->getMessage()));
+            $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
             return;
         }
 
         if (!empty($result['errors'])) {
             $this->flashMessage(
                 'error',
-                Language::_('AdminMain.flash.sync_partial', true, $result['synced'], implode('; ', $result['errors']))
+                Language::_('AdminPackageSync.flash.sync_partial', true, $result['synced'], implode('; ', $result['errors']))
             );
         } else {
-            $this->flashMessage('message', Language::_('AdminMain.flash.sync_success', true, $result['synced']));
+            $this->flashMessage('message', Language::_('AdminPackageSync.flash.sync_success', true, $result['synced']));
         }
 
-        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
     }
 
     public function auto_create_package()
@@ -91,27 +101,27 @@ class BrandforgeAdminMain extends BrandforgeController
             : null;
 
         if (!$mapping) {
-            $this->flashMessage('error', Language::_('AdminMain.flash.package_not_found', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+            $this->flashMessage('error', Language::_('AdminPackageSync.flash.package_not_found', true));
+            $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
             return;
         }
 
         if (!empty($mapping->blesta_package_id)) {
-            $this->flashMessage('error', Language::_('AdminMain.flash.already_linked', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+            $this->flashMessage('error', Language::_('AdminPackageSync.flash.already_linked', true));
+            $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
             return;
         }
 
         if (empty($this->settings->module_row_id)) {
-            $this->flashMessage('error', Language::_('AdminMain.flash.no_module_row', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+            $this->flashMessage('error', Language::_('AdminPackageSync.flash.no_module_row', true));
+            $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
             return;
         }
 
         $moduleId = $this->getBrandforgeModuleId();
         if (!$moduleId) {
-            $this->flashMessage('error', Language::_('AdminMain.flash.module_not_installed', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+            $this->flashMessage('error', Language::_('AdminPackageSync.flash.module_not_installed', true));
+            $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
             return;
         }
 
@@ -124,12 +134,12 @@ class BrandforgeAdminMain extends BrandforgeController
                 $mapping->godmode_slug
             );
             $this->BrandforgePackageMap->setBlestaPackage($this->company_id, $godmodePackageId, $packageId);
-            $this->flashMessage('message', Language::_('AdminMain.flash.package_created', true, $mapping->godmode_name));
+            $this->flashMessage('message', Language::_('AdminPackageSync.flash.package_created', true, $mapping->godmode_name));
         } catch (Exception $e) {
-            $this->flashMessage('error', Language::_('AdminMain.flash.create_failed', true, $e->getMessage()));
+            $this->flashMessage('error', Language::_('AdminPackageSync.flash.create_failed', true, $e->getMessage()));
         }
 
-        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
     }
 
     public function link_package()
@@ -138,13 +148,13 @@ class BrandforgeAdminMain extends BrandforgeController
         $blestaPackageId = (int) ($this->post['blesta_package_id'] ?? 0);
 
         if ($godmodePackageId === '' || $blestaPackageId <= 0) {
-            $this->flashMessage('error', Language::_('AdminMain.flash.select_package', true));
+            $this->flashMessage('error', Language::_('AdminPackageSync.flash.select_package', true));
         } else {
             $this->BrandforgePackageMap->setBlestaPackage($this->company_id, $godmodePackageId, $blestaPackageId);
-            $this->flashMessage('message', Language::_('AdminMain.flash.linked', true));
+            $this->flashMessage('message', Language::_('AdminPackageSync.flash.linked', true));
         }
 
-        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
     }
 
     public function unlink_package()
@@ -152,10 +162,10 @@ class BrandforgeAdminMain extends BrandforgeController
         $godmodePackageId = (string) ($this->get[0] ?? '');
         if ($godmodePackageId !== '') {
             $this->BrandforgePackageMap->setBlestaPackage($this->company_id, $godmodePackageId, null);
-            $this->flashMessage('message', Language::_('AdminMain.flash.unlinked', true));
+            $this->flashMessage('message', Language::_('AdminPackageSync.flash.unlinked', true));
         }
 
-        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+        $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
     }
 
     public function reset_all()
@@ -164,8 +174,8 @@ class BrandforgeAdminMain extends BrandforgeController
         // already-created Package, same guarantee as the WHMCS addon's
         // reset_all (products preserved on reset).
         $this->BrandforgePackageMap->reset($this->company_id);
-        $this->flashMessage('message', Language::_('AdminMain.flash.reset_complete', true));
-        $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+        $this->flashMessage('message', Language::_('AdminPackageSync.flash.reset_complete', true));
+        $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
     }
 
     // -------------------------------------------------------------------
@@ -174,13 +184,35 @@ class BrandforgeAdminMain extends BrandforgeController
 
     private function getClient(): ?BrandforgeSyncClient
     {
-        if ($this->settings->api_url === '' || $this->settings->api_key === '') {
-            $this->flashMessage('error', Language::_('AdminMain.flash.no_credentials', true));
-            $this->redirect($this->base_uri . 'plugin/brandforge/brandforge_admin_main/');
+        $row = $this->getModuleRow();
+        if (!$row || empty($row->meta->api_url) || empty($row->meta->api_key)) {
+            $this->flashMessage('error', Language::_('AdminPackageSync.flash.no_credentials', true));
+            $this->redirect($this->base_uri . 'plugin/brandforge/admin_package_sync/');
             return null;
         }
 
-        return new BrandforgeSyncClient($this->settings->api_url, $this->settings->api_key);
+        return new BrandforgeSyncClient($row->meta->api_url, $row->meta->api_key);
+    }
+
+    /**
+     * The brandforge module row selected on the plugin's settings page —
+     * the single source of truth for Godmode credentials (see
+     * BrandforgeSettings for why Package Sync has no API URL/Key of its own).
+     */
+    private function getModuleRow(): ?\stdClass
+    {
+        if (empty($this->settings->module_row_id)) {
+            return null;
+        }
+
+        try {
+            Loader::loadModels($this, ['ModuleManager']);
+            $row = $this->ModuleManager->getRow((int) $this->settings->module_row_id);
+
+            return $row ?: null;
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     /** @return int|null The installed brandforge Module's id, or null if not found/not installed. */
