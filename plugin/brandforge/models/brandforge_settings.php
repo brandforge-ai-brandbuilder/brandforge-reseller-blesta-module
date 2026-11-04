@@ -36,6 +36,9 @@ class BrandforgeSettings extends AppModel
             'id' => null,
             'company_id' => $company_id,
             'module_row_id' => null,
+            'default_brand_name' => '',
+            'default_brand_color' => '',
+            'default_brand_color_secondary' => '',
             'debug_mode' => 0,
         ];
     }
@@ -55,6 +58,9 @@ class BrandforgeSettings extends AppModel
 
         $data = [
             'module_row_id' => !empty($vars['module_row_id']) ? (int) $vars['module_row_id'] : null,
+            'default_brand_name' => trim((string) ($vars['default_brand_name'] ?? '')),
+            'default_brand_color' => trim((string) ($vars['default_brand_color'] ?? '')),
+            'default_brand_color_secondary' => trim((string) ($vars['default_brand_color_secondary'] ?? '')),
             'debug_mode' => !empty($vars['debug_mode']) ? 1 : 0,
             'date_updated' => $now,
         ];

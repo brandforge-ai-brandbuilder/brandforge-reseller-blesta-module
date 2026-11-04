@@ -50,6 +50,41 @@
         </div>
     <?php endif; ?>
 
+    <hr class="my-4">
+
+    <h6><?php echo $this->_('AdminManagePlugin.field.default_branding_heading', true); ?></h6>
+    <p class="text-body-secondary small">
+        <?php echo $this->_('AdminManagePlugin.field.default_branding_help', true); ?>
+    </p>
+
+    <div class="mb-3">
+        <label class="form-label" for="brandforge_default_brand_name">
+            <?php echo $this->_('AdminManagePlugin.field.default_brand_name', true); ?>
+        </label>
+        <input type="text" class="form-control" id="brandforge_default_brand_name" name="default_brand_name"
+               placeholder="<?php echo $this->Html->safe($this->_('AdminManagePlugin.field.default_brand_name.placeholder', true)); ?>"
+               value="<?php echo $this->Html->safe($vars->default_brand_name ?? ''); ?>">
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-sm-6">
+            <label class="form-label" for="brandforge_default_brand_color">
+                <?php echo $this->_('AdminManagePlugin.field.default_brand_color', true); ?>
+            </label>
+            <input type="color" class="form-control form-control-color" id="brandforge_default_brand_color"
+                   name="default_brand_color"
+                   value="<?php echo $this->Html->safe($vars->default_brand_color ?: '#6366f1'); ?>">
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label" for="brandforge_default_brand_color_secondary">
+                <?php echo $this->_('AdminManagePlugin.field.default_brand_color_secondary', true); ?>
+            </label>
+            <input type="color" class="form-control form-control-color" id="brandforge_default_brand_color_secondary"
+                   name="default_brand_color_secondary"
+                   value="<?php echo $this->Html->safe($vars->default_brand_color_secondary ?: '#8b5cf6'); ?>">
+        </div>
+    </div>
+
     <div class="mb-3">
         <div class="form-check form-switch">
             <input type="checkbox" class="form-check-input" id="brandforge_debug_mode" name="debug_mode"

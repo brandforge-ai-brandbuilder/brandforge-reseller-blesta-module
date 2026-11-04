@@ -713,9 +713,71 @@ class Brandforge extends Module
     {
         return [
             'tabClientDashboard' => [
-                'name' => Language::_('Brandforge.tab.dashboard', true),
+                'name' => $this->getBrandName($service),
                 'icon' => 'fas fa-rocket',
             ],
+        ];
+    }
+
+    /**
+     * Reads the package's own "Brand Name" meta field (set under the
+     * package's BrandForge fields, see getPackageFields()) so the client
+     * portal's sidebar tab shows the reseller's own branding instead of
+     * the literal word "BrandForge". $service here is the lighter object
+     * ClientServices::buildTabs() passes in (not the fully-loaded $package
+     * already fetched by the controller) so the package meta is looked up
+     * fresh — same pattern as getDashboardData() needing its own $package.
+     */
+    private function getBrandName($service): string
+    {
+        $brandName = $this->getDefaultBranding()['brand_name'] ?: Language::_('Brandforge.tab.dashboard', true);
+
+        if (!empty($service->package->id)) {
+            Loader::loadModels($this, ['Packages']);
+            $package = $this->Packages->get($service->package->id);
+            if (!empty($package->meta->brand_name)) {
+                $brandName = $package->meta->brand_name;
+            }
+        }
+
+        return $brandName;
+    }
+
+    /**
+     * The plugin's own default-branding settings (see plugin/brandforge's
+     * BrandforgeSettings/AdminManagePlugin) — read directly from its table
+     * rather than loading its model, since a module and a plugin are
+     * separate, independently-installed extensions with no supported path
+     * to load one's model from the other. Degrades to all-blank if the
+     * plugin isn't installed (table doesn't exist) or the query fails.
+     *
+     * @return array{brand_name: string, brand_color: string, brand_color_secondary: string}
+     */
+    private function getDefaultBranding(): array
+    {
+        $blank = ['brand_name' => '', 'brand_color' => '', 'brand_color_secondary' => ''];
+
+        try {
+            $row = $this->Record->select([
+                'default_brand_name',
+                'default_brand_color',
+                'default_brand_color_secondary',
+            ])
+                ->from('brandforge_settings')
+                ->where('company_id', '=', Configure::get('Blesta.company_id'))
+                ->fetch();
+        } catch (Exception $e) {
+            return $blank;
+        }
+
+        if (!$row) {
+            return $blank;
+        }
+
+        return [
+            'brand_name' => (string) ($row->default_brand_name ?? ''),
+            'brand_color' => (string) ($row->default_brand_color ?? ''),
+            'brand_color_secondary' => (string) ($row->default_brand_color_secondary ?? ''),
         ];
     }
 
@@ -765,6 +827,7 @@ class Brandforge extends Module
     {
         $fields = $this->serviceFieldsToObject($service->fields);
         $godmodeServiceId = (string) ($fields->godmode_service_id ?? '');
+        $defaultBranding = $this->getDefaultBranding();
 
         $data = [
             'has_service' => $godmodeServiceId !== '',
@@ -793,9 +856,11 @@ class Brandforge extends Module
             // branded yet (e.g. one made via the plugin's "Create Package").
             // '??' never falls back on '', which rendered the Launch button
             // as invisible white-on-white (background-color: ; color: #fff;).
-            'brand_name' => $package->meta->brand_name ?: 'BrandForge',
-            'brand_color' => $package->meta->brand_color ?: '#6366f1',
-            'brand_color_secondary' => $package->meta->brand_color_secondary ?? '',
+            // Falls back to the plugin's own default branding (set on its
+            // settings page) before the hardcoded BrandForge defaults.
+            'brand_name' => $package->meta->brand_name ?: ($defaultBranding['brand_name'] ?: 'BrandForge'),
+            'brand_color' => $package->meta->brand_color ?: ($defaultBranding['brand_color'] ?: '#6366f1'),
+            'brand_color_secondary' => $package->meta->brand_color_secondary ?: $defaultBranding['brand_color_secondary'],
         ];
 
         if (!$data['has_service']) {

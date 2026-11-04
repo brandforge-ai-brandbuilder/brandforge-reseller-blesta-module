@@ -131,7 +131,10 @@ class AdminPackageSync extends BrandforgeController
                 $moduleId,
                 (int) $this->settings->module_row_id,
                 $mapping->godmode_name,
-                $mapping->godmode_slug
+                $mapping->godmode_slug,
+                (string) ($this->settings->default_brand_name ?? ''),
+                (string) ($this->settings->default_brand_color ?? ''),
+                (string) ($this->settings->default_brand_color_secondary ?? '')
             );
             $this->BrandforgePackageMap->setBlestaPackage($this->company_id, $godmodePackageId, $packageId);
             $this->flashMessage('message', Language::_('AdminPackageSync.flash.package_created', true, $mapping->godmode_name));

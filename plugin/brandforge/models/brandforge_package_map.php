@@ -221,10 +221,25 @@ class BrandforgePackageMap extends AppModel
      * Pricing defaults to $0/month — Blesta packages require pricing to
      * save; the admin sets the real price afterward (flagged in the UI).
      *
+     * $defaultBrandName/Color/ColorSecondary come from the plugin's own
+     * settings page (see BrandforgeSettings) and are baked into every newly
+     * created package's meta, so the admin never has to set a package's
+     * Brand Name/Color by hand — see also getDashboardData() in the module,
+     * which falls back to the same settings live for packages that predate
+     * this or otherwise still have a blank Brand Name/Color.
+     *
      * @throws RuntimeException
      */
-    public function createPackage($company_id, int $moduleId, ?int $moduleRowId, string $name, string $planCode): int
-    {
+    public function createPackage(
+        $company_id,
+        int $moduleId,
+        ?int $moduleRowId,
+        string $name,
+        string $planCode,
+        string $defaultBrandName = '',
+        string $defaultBrandColor = '',
+        string $defaultBrandColorSecondary = ''
+    ): int {
         $groupId = $this->findOrCreatePackageGroup($company_id);
 
         $existing = $this->findExistingPackageByName($company_id, $groupId, $name);
@@ -255,7 +270,12 @@ class BrandforgePackageMap extends AppModel
                     'currency' => 'USD',
                 ],
             ],
-            'meta' => ['plan_code' => $planCode],
+            'meta' => [
+                'plan_code' => $planCode,
+                'brand_name' => $defaultBrandName,
+                'brand_color' => $defaultBrandColor,
+                'brand_color_secondary' => $defaultBrandColorSecondary,
+            ],
         ];
 
         $packageId = $this->Packages->add($vars);
