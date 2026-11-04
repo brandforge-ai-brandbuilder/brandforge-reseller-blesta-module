@@ -22,6 +22,5 @@
         "service": ["godmode_service_id", "godmode_workspace_id"]
     },
 
-    "icon": "bi-stars",
     "logo": "views/default/images/logo.png"
 }

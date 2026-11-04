@@ -20,9 +20,6 @@ $lang['Brandforge.edit_row.save_btn'] = 'Save Changes';
 // per-product Module Settings)
 $lang['Brandforge.package_meta.plan_code'] = 'Godmode Plan Code';
 $lang['Brandforge.package_meta.plan_code.tooltip'] = 'The plan slug from Godmode\'s package list (Provisioning > Packages). Package Sync (the companion plugin) can fill this in for you once it exists.';
-$lang['Brandforge.package_meta.brand_name'] = 'Brand Name';
-$lang['Brandforge.package_meta.brand_color'] = 'Brand Primary Color';
-$lang['Brandforge.package_meta.brand_color_secondary'] = 'Brand Accent Color';
 $lang['Brandforge.package_meta.frontend_url'] = 'Frontend App URL';
 $lang['Brandforge.package_meta.client_area_language'] = 'Client Area Language';
 

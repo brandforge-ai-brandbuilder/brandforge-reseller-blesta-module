@@ -77,6 +77,39 @@ class BrandforgePlugin extends Plugin
         }
     }
 
+    /**
+     * Runs when config.json's version differs from what's stored —
+     * reachable from Settings > Company > Plugins via an "Upgrade" action,
+     * no uninstall needed. install()'s CREATE TABLE IF NOT EXISTS is a
+     * no-op on a table that already exists, so a column added here needs
+     * its own explicit ALTER for anyone who installed before this version.
+     */
+    public function upgrade($current_version, $plugin_id)
+    {
+        if (!isset($this->Record)) {
+            Loader::loadComponents($this, ['Record']);
+        }
+
+        if (version_compare($current_version, '1.1.0', '<')) {
+            // Default Branding settings — added in 1.1.0.
+            $alters = [
+                "ALTER TABLE `brandforge_settings` ADD COLUMN `default_brand_name` VARCHAR(255) NOT NULL DEFAULT '' AFTER `module_row_id`",
+                "ALTER TABLE `brandforge_settings` ADD COLUMN `default_brand_color` VARCHAR(20) NOT NULL DEFAULT '' AFTER `default_brand_name`",
+                "ALTER TABLE `brandforge_settings` ADD COLUMN `default_brand_color_secondary` VARCHAR(20) NOT NULL DEFAULT '' AFTER `default_brand_color`",
+            ];
+
+            foreach ($alters as $sql) {
+                try {
+                    $this->Record->query($sql);
+                } catch (Exception $e) {
+                    // Column already exists (e.g. a fresh install() already
+                    // created it on this company) — safe to ignore, same
+                    // idempotent spirit as CREATE TABLE IF NOT EXISTS.
+                }
+            }
+        }
+    }
+
     public function uninstall($plugin_id, $last_instance)
     {
         if (!isset($this->Record)) {

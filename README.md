@@ -59,6 +59,12 @@ now only stores `module_row_id` and a debug flag. If you have an existing instal
 change, delete and reinstall the plugin (Settings > Company > Plugins) to pick up the new table
 schema, then re-select your module row on the settings page.
 
+**Confirmed live since (2026-11-02 through 11-04):** `addService()` (real Godmode account creation,
+both admin-side Add Service and the resulting client dashboard), SSO Launch (once `brand_color`/
+`brand_name` fallbacks were fixed — see bugs #9 below), and the client "Upgrade Plan" button/flow
+(once the company's "Allow Clients to Change Service Package" setting was enabled and a second
+package existed in the BrandForge group).
+
 **Not otherwise verified beyond the above.** What hasn't been exercised yet:
 
 - `module/brandforge/brandforge.php`'s `install()`/`brandforge_accounts` CRUD, and the plugin's own
@@ -66,15 +72,41 @@ schema, then re-select your module row on the settings page.
   following Blesta's documented conventions, low risk.
 - The "Link existing package" and "Reset Mapping" actions, and editing an existing module row — not
   yet clicked through on this install.
-- The whole service lifecycle: ordering a package, SSO launch, upgrade/change package, suspend,
-  unsuspend, and cancel/terminate — code matches the Blesta `Module` contract (verified against
-  `components/modules/module.php` and the `order`/`cpanel` core modules) but has not been clicked
-  through end-to-end on a live install yet.
-- The client dashboard tab's "Upgrade Plan" button links to `services/upgrade/{service_id}/` — the
-  real Blesta client-portal route for `ClientServices::upgrade()` (confirmed by reading
-  `app/controllers/client_services.php`), but not yet clicked on a live install. That action is also
-  gated by the company setting *client can change service package* (`client_change_service_package`)
-  — if the button 404s or goes nowhere, check that setting first before assuming a module bug.
+- Suspend, unsuspend, and cancel/terminate — code matches the Blesta `Module` contract (verified
+  against `components/modules/module.php` and the `order`/`cpanel` core modules) but has not been
+  clicked through end-to-end on a live install yet.
+
+## Default branding (plugin settings → every package → client dashboard)
+
+The plugin's settings page (Settings > Company > Plugins > BrandForge Package Sync > Manage) now has a
+**Default Branding** section (Brand Name, Brand Color, Secondary Color) so you only set your branding
+once instead of per-package:
+
+- `createPackage()` (the "Create Package" button) bakes these defaults straight into every newly
+  created package's `meta[brand_name]`/`meta[brand_color]`/`meta[brand_color_secondary]` — no manual
+  per-package edit needed going forward.
+- The module's client dashboard (`getDashboardData()`) and sidebar tab label (`getBrandName()`) both
+  fall back to these same settings **live**, for any package whose own Brand Name/Color is still blank
+  (e.g. packages created before this existed, or manually cleared) — read directly from the
+  `brandforge_settings` table via `$this->Record`, since a module and a plugin are separate extensions
+  with no supported path to load one's model from the other's directory.
+
+**This introduced the plugin's first real schema migration** (`brandforge_settings` gained three new
+columns) — which is also why the plugin now has a proper `upgrade($current_version, $plugin_id)`
+method instead of relying only on `install()`'s `CREATE TABLE IF NOT EXISTS` (a no-op on a table that
+already exists). Use Settings > Company > Plugins > Installed > **Upgrade** for future schema changes
+from here on — it's non-destructive (unlike uninstall/reinstall, which drops `brandforge_package_map`
+too and wipes your Linked/Pending mapping state along with it).
+
+**Brand Name/Color/Secondary Color are now company-wide only, not per-package.** `getPackageFields()`
+(the module's own package settings form) no longer has Brand Name/Primary Color/Accent Color fields at
+all — only Plan Code, Frontend App URL, and Client Area Language remain there. `buildPackageMeta()` no
+longer writes those three keys to package meta, `createPackage()` no longer takes/sets them, and the
+module's dashboard (`getDashboardData()`) and client tab label (`getClientServiceTabs()`) read
+*exclusively* from the plugin's company-wide Default Branding settings — no package-level fallback
+chain anymore. This was a deliberate simplification (not a bug fix): a reseller wants one consistent
+brand across every plan, not a different Launch-button color per tier, so the per-package override
+was pure UI clutter. No schema change on either side for this one — just re-upload both zips.
 
 ## Structure
 

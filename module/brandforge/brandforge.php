@@ -239,35 +239,12 @@ class Brandforge extends Module
         $planCode->attach($fields->tooltip(Language::_('Brandforge.package_meta.plan_code.tooltip', true)));
         $fields->setField($planCode);
 
-        $brandName = $fields->label(Language::_('Brandforge.package_meta.brand_name', true), 'brandforge_brand_name');
-        $brandName->attach($fields->fieldText(
-            'meta[brand_name]',
-            $this->packageMetaValue($vars, 'brand_name'),
-            ['id' => 'brandforge_brand_name', 'class' => 'form-control']
-        ));
-        $fields->setField($brandName);
-
-        $brandColor = $fields->label(
-            Language::_('Brandforge.package_meta.brand_color', true),
-            'brandforge_brand_color'
-        );
-        $brandColor->attach($fields->fieldText(
-            'meta[brand_color]',
-            $this->packageMetaValue($vars, 'brand_color', '#6366f1'),
-            ['id' => 'brandforge_brand_color', 'class' => 'form-control']
-        ));
-        $fields->setField($brandColor);
-
-        $brandColorSecondary = $fields->label(
-            Language::_('Brandforge.package_meta.brand_color_secondary', true),
-            'brandforge_brand_color_secondary'
-        );
-        $brandColorSecondary->attach($fields->fieldText(
-            'meta[brand_color_secondary]',
-            $this->packageMetaValue($vars, 'brand_color_secondary'),
-            ['id' => 'brandforge_brand_color_secondary', 'class' => 'form-control']
-        ));
-        $fields->setField($brandColorSecondary);
+        // Brand Name/Color/Secondary Color are deliberately NOT per-package
+        // fields — a reseller sets them once under the plugin's own Default
+        // Branding settings (Settings > Company > Plugins > BrandForge
+        // Package Sync > Manage) and every package/service dashboard falls
+        // back to that, since in practice a reseller wants one consistent
+        // brand across every plan, not a different one per tier.
 
         $frontendUrl = $fields->label(
             Language::_('Brandforge.package_meta.frontend_url', true),
@@ -331,7 +308,7 @@ class Brandforge extends Module
 
     private function buildPackageMeta(array $vars): array
     {
-        $keys = ['plan_code', 'brand_name', 'brand_color', 'brand_color_secondary', 'frontend_url', 'client_area_language'];
+        $keys = ['plan_code', 'frontend_url', 'client_area_language'];
 
         $meta = [];
         foreach ($keys as $key) {
@@ -713,34 +690,10 @@ class Brandforge extends Module
     {
         return [
             'tabClientDashboard' => [
-                'name' => $this->getBrandName($service),
+                'name' => $this->getDefaultBranding()['brand_name'] ?: Language::_('Brandforge.tab.dashboard', true),
                 'icon' => 'fas fa-rocket',
             ],
         ];
-    }
-
-    /**
-     * Reads the package's own "Brand Name" meta field (set under the
-     * package's BrandForge fields, see getPackageFields()) so the client
-     * portal's sidebar tab shows the reseller's own branding instead of
-     * the literal word "BrandForge". $service here is the lighter object
-     * ClientServices::buildTabs() passes in (not the fully-loaded $package
-     * already fetched by the controller) so the package meta is looked up
-     * fresh — same pattern as getDashboardData() needing its own $package.
-     */
-    private function getBrandName($service): string
-    {
-        $brandName = $this->getDefaultBranding()['brand_name'] ?: Language::_('Brandforge.tab.dashboard', true);
-
-        if (!empty($service->package->id)) {
-            Loader::loadModels($this, ['Packages']);
-            $package = $this->Packages->get($service->package->id);
-            if (!empty($package->meta->brand_name)) {
-                $brandName = $package->meta->brand_name;
-            }
-        }
-
-        return $brandName;
     }
 
     /**
@@ -850,17 +803,12 @@ class Brandforge extends Module
             'workspaces_max' => 0,
             'workspaces_active' => 0,
             'workspaces' => [],
-            // '?:' not '??' — buildPackageMeta() always writes these keys,
-            // defaulting to '' rather than omitting them, so an empty string
-            // (not null) is the "unset" value for a package nobody has
-            // branded yet (e.g. one made via the plugin's "Create Package").
-            // '??' never falls back on '', which rendered the Launch button
-            // as invisible white-on-white (background-color: ; color: #fff;).
-            // Falls back to the plugin's own default branding (set on its
-            // settings page) before the hardcoded BrandForge defaults.
-            'brand_name' => $package->meta->brand_name ?: ($defaultBranding['brand_name'] ?: 'BrandForge'),
-            'brand_color' => $package->meta->brand_color ?: ($defaultBranding['brand_color'] ?: '#6366f1'),
-            'brand_color_secondary' => $package->meta->brand_color_secondary ?: $defaultBranding['brand_color_secondary'],
+            // Company-wide defaults only — Brand Name/Color/Secondary Color
+            // are not per-package fields (see getPackageFields()'s docblock),
+            // so there's no package meta to read here at all anymore.
+            'brand_name' => $defaultBranding['brand_name'] ?: 'BrandForge',
+            'brand_color' => $defaultBranding['brand_color'] ?: '#6366f1',
+            'brand_color_secondary' => $defaultBranding['brand_color_secondary'],
         ];
 
         if (!$data['has_service']) {
